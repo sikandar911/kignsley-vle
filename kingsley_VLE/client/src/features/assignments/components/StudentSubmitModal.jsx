@@ -13,7 +13,13 @@ const fmt = (d) =>
       })
     : 'No deadline'
 
-const ACCEPT = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.webp,.zip,.txt'
+const ACCEPT = '.doc,.docx,.pptx'
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB max for student assignment submissions
+const ALLOWED_TYPES = {
+  'application/msword': '.doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+}
 
 const IQA_LABELS = {
   PENDING: { label: 'Pending Review', cls: 'bg-gray-100 text-gray-600' },
@@ -52,6 +58,22 @@ export default function StudentSubmitModal({ assignment, onClose, onSubmitted })
   const handleFileSelect = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    // Validate file type (only DOC, DOCX, PPTX)
+    if (!ALLOWED_TYPES[file.type]) {
+      setUploadError(`File type not allowed: ${file.name}. Only DOC, DOCX, and PPTX files are accepted.`)
+      e.target.value = ''
+      return
+    }
+
+    // Validate file size (10 MB max)
+    if (file.size > MAX_FILE_SIZE) {
+      const fileSizeMB = (file.size / 1024 / 1024).toFixed(2)
+      setUploadError(`File size must be under 10 MB. Your file is ${fileSizeMB} MB.`)
+      e.target.value = ''
+      return
+    }
+
     setUploadError('')
     setUploading(true)
     try {
@@ -320,7 +342,7 @@ export default function StudentSubmitModal({ assignment, onClose, onSubmitted })
                           <p className="text-sm text-gray-600">
                             <span className="font-semibold text-[#6b1142]">Click to upload</span> or drag & drop
                           </p>
-                          <p className="text-xs text-gray-400">PDF, Word, Excel, PowerPoint, images</p>
+                          <p className="text-xs text-gray-400">DOC, DOCX, PPTX (Max 10 MB)</p>
                         </div>
                       )}
                     </div>

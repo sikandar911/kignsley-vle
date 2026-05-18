@@ -3,7 +3,7 @@ import { assignmentsApi } from "../api/assignments.api";
 
 // File type and size restrictions
 const ACCEPT = ".pdf,.docx,.pptx";
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB (for assignments - students & teachers)
 const ALLOWED_TYPES = {
   "application/pdf": ".pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":

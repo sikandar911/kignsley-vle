@@ -9,6 +9,7 @@ import CustomDropdown from "../../classRecords/components/CustomDropdown";
 
 const BRAND = "#6b1142";
 const BRAND_DARK = "#5a1630";
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB max for class materials
 
 const ClassMaterialsModal = ({ isOpen, onClose, onSubmit, editMaterial }) => {
   const { user } = useAuth();
@@ -296,6 +297,19 @@ const ClassMaterialsModal = ({ isOpen, onClose, onSubmit, editMaterial }) => {
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validate file size (50 MB max)
+    if (file.size > MAX_FILE_SIZE) {
+      const fileSizeMB = (file.size / 1024 / 1024).toFixed(2);
+      Swal.fire({
+        icon: "error",
+        title: "File Too Large",
+        text: `File size must be under 50 MB. Your file is ${fileSizeMB} MB.`,
+        confirmButtonText: "OK",
+      });
+      return;
+    }
+
     try {
       setUploadingFile(true);
       const response = await classMaterialsApi.uploadFile(

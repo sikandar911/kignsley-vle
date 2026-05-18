@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Kingsley VLE - Update/Redeployment Script
+# Current Update: File Upload Limit Configuration (50 MB for files, 10 MB for student submissions)
+# No database schema changes - migration step is precautionary only
 
 echo "========================================="
 echo "Starting Application Update..."
@@ -12,20 +14,17 @@ if [ ! -f "prod.env" ]; then
     exit 1
 fi
 
-echo "[1/3] Rebuilding and restarting Docker containers..."
+echo "[1/2] Rebuilding and restarting Docker containers..."
 # Build and run detached (picks up any code changes)
 docker compose --env-file prod.env up -d --build
 
 echo "Waiting for container and database to initialize..."
 sleep 8
 
-echo "[2/3] Running Database Migrations..."
+echo "[2/2] Running Database Migrations (if any)..."
 # Apply any new migrations if the database schema changed
+# Note: Current update has NO schema changes - this is precautionary
 docker compose exec kingsley-backend npx prisma migrate deploy
-
-echo "[3/3] Fixing reminder dates (one-time fix for timezone shifts)..."
-# Run the reminder date fix script against the live database
-node fix-reminder-dates.js
 
 echo "========================================="
 echo "Update Complete! 🚀"

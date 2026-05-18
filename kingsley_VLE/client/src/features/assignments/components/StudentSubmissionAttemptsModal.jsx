@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { assignmentsApi } from "../api/assignments.api";
 import FileViewerModal from "../../courseChat/components/FileViewerModal";
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB max for student assignment submissions
 const fmtDate = (d) =>
   d
     ? new Date(d).toLocaleString("en-US", {
@@ -118,9 +119,10 @@ export default function StudentSubmissionAttemptsModal({
       return;
     }
 
-    // Validate file types
+    // Validate file types and size
     const validFiles = [];
     const invalidFiles = [];
+    const oversizedFiles = [];
 
     for (const file of files) {
       const fileName = file.name.toLowerCase();
@@ -128,10 +130,12 @@ export default function StudentSubmissionAttemptsModal({
         fileName.endsWith(ext),
       );
 
-      if (isAllowed) {
-        validFiles.push(file);
-      } else {
+      if (!isAllowed) {
         invalidFiles.push(file.name);
+      } else if (file.size > MAX_FILE_SIZE) {
+        oversizedFiles.push({ name: file.name, size: (file.size / 1024 / 1024).toFixed(2) });
+      } else {
+        validFiles.push(file);
       }
     }
 
@@ -139,6 +143,15 @@ export default function StudentSubmissionAttemptsModal({
     if (invalidFiles.length > 0) {
       setSubmitError(
         `Invalid file type(s): ${invalidFiles.join(", ")}. Only .doc, .docx, and .pptx files are allowed.`,
+      );
+      setTimeout(() => setSubmitError(null), 5000);
+    }
+
+    // Show error for oversized files
+    if (oversizedFiles.length > 0) {
+      const sizeErrors = oversizedFiles.map((f) => `${f.name} (${f.size} MB)`).join(", ");
+      setSubmitError(
+        `File size must be under 10 MB: ${sizeErrors}.`,
       );
       setTimeout(() => setSubmitError(null), 5000);
     }
